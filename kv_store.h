@@ -24,5 +24,6 @@ typedef struct Node {
 Node *hash_table[TABLE_SIZE];
 
 unsigned int hash(const char *key);
+void put(const char *key, const char *value);
 
 #endif 
