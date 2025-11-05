@@ -31,3 +31,21 @@ void put(const char *key, const char *value) {
      atomic_fetch_add(&write_count, 1);
     pthread_rwlock_unlock(&rw_lock);
 }
+
+/* ----------- GET Operation ---------- */
+char *get(const char *key) {
+    unsigned int index = hash(key); 
+    pthread_rwlock_rdlock(&rw_lock);
+    sleep(2);
+    Node *cur = hash_table[index];
+    while (cur) {
+        if (strcmp(cur->key, key) == 0) {
+            pthread_rwlock_unlock(&rw_lock);
+            return cur->value;
+        }
+        cur = cur->next;
+    }
+
+    pthread_rwlock_unlock(&rw_lock);
+    return NULL;
+}

@@ -25,5 +25,6 @@ Node *hash_table[TABLE_SIZE];
 
 unsigned int hash(const char *key);
 void put(const char *key, const char *value);
+char *get(const char *key);
 
 #endif 
