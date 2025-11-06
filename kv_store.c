@@ -28,7 +28,6 @@ void put(const char *key, const char *value) {
     strcpy(newNode->value, value);
     newNode->next = hash_table[index];
     hash_table[index] = newNode;
-     atomic_fetch_add(&write_count, 1);
     pthread_rwlock_unlock(&rw_lock);
 }
 
@@ -50,25 +49,6 @@ char *get(const char *key) {
     return NULL;
 }
 
-/*---------- Writer Thread function ----------*/
-void *writer_thread(void *arg) {
-    int id = *(int *)arg;
-    char key[KEY_SIZE], value[VALUE_SIZE];
-
-    for (int i = 0; i < 4; i++) {
-        snprintf(key, sizeof(key), "key %d_%d", id, i);
-        int res_value = (id * 1000) + i;
-        snprintf(value, sizeof(value), "%d", res_value);
-
-        wal_append(key, value);
-        put(key, value);
-
-        printf("[Writer %d] Wrote [%s : %s]\n", id, key, value);
-        sleep(2);
-    }
-
-    return NULL;
-}
 
 /*---------- Writer Thread function ----------*/
 void *writer_thread(void *arg) {
@@ -80,8 +60,6 @@ void *writer_thread(void *arg) {
         snprintf(key, sizeof(key), "key %d_%d", id, i);
         int res_value = (id * 1000) + i;
         snprintf(value, sizeof(value), "%d", res_value);
-
-        wal_append(key, value);
         put(key, value);
 
         printf("[Writer %d] Wrote [%s : %s]\n", id, key, value);
@@ -132,8 +110,6 @@ void display_table() {
 int main() {
 
     printf("----------Key-Value Store--------------------\n");
-   
-    display_table(); 
 
     pthread_t writers[MAX_WRITER], readers[MAX_READER]; 
     int wid[MAX_WRITER] = {1, 2, 3}, rid[MAX_READER] = {1, 2};
@@ -148,6 +124,6 @@ int main() {
     for (int i = 0; i < 2; i++)
         pthread_join(readers[i], NULL);
 
-    
+    display_table(); 
     return 0;
 }
