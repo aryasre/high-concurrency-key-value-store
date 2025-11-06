@@ -50,6 +50,67 @@ char *get(const char *key) {
     return NULL;
 }
 
+/*---------- Writer Thread function ----------*/
+void *writer_thread(void *arg) {
+    int id = *(int *)arg;
+    char key[KEY_SIZE], value[VALUE_SIZE];
+
+    for (int i = 0; i < 4; i++) {
+        snprintf(key, sizeof(key), "key %d_%d", id, i);
+        int res_value = (id * 1000) + i;
+        snprintf(value, sizeof(value), "%d", res_value);
+
+        wal_append(key, value);
+        put(key, value);
+
+        printf("[Writer %d] Wrote [%s : %s]\n", id, key, value);
+        sleep(2);
+    }
+
+    return NULL;
+}
+
+/*---------- Writer Thread function ----------*/
+void *writer_thread(void *arg) {
+    int id = *(int *)arg;
+    char key[KEY_SIZE], value[VALUE_SIZE];
+
+    for (int i = 0; i < 4; i++) {
+        //pthread_rwlock_wrlock(&rw_lock);
+        snprintf(key, sizeof(key), "key %d_%d", id, i);
+        int res_value = (id * 1000) + i;
+        snprintf(value, sizeof(value), "%d", res_value);
+
+        wal_append(key, value);
+        put(key, value);
+
+        printf("[Writer %d] Wrote [%s : %s]\n", id, key, value);
+        //pthread_rwlock_unlock(&rw_lock);
+        sleep(2);
+    }
+
+    return NULL;
+}
+
+/* ---------- Reader Threads ---------- */
+void *reader_thread(void *arg) {
+    int id = *(int *)arg;
+    const char *keys_to_read[] = {"key 1_1","key 1_0", "key 4_2", "key3_0", NULL};
+
+    for (int i = 0; keys_to_read[i]; i++) {
+       // pthread_rwlock_rdlock(&rw_lock);
+        char *val = get(keys_to_read[i]);
+        if (val)
+            printf("[Reader %d] %s -> %s\n", id, keys_to_read[i], val);
+        else
+            printf("[Reader %d] %s -> (key not found)\n", id, keys_to_read[i]);
+         //pthread_rwlock_unlock(&rw_lock);
+        sleep(1);
+    }
+
+    return NULL;
+}
+
 /* ---------- Display Hash table---------- */
 void display_table() {
     printf("\n--- Hash Table ---\n");
@@ -73,6 +134,20 @@ int main() {
     printf("----------Key-Value Store--------------------\n");
    
     display_table(); 
+
+    pthread_t writers[MAX_WRITER], readers[MAX_READER]; 
+    int wid[MAX_WRITER] = {1, 2, 3}, rid[MAX_READER] = {1, 2};
+
+    for (int i = 0; i < MAX_WRITER; i++)
+        pthread_create(&writers[i], NULL, writer_thread, &wid[i]);
+    for (int i = 0; i < MAX_READER; i++)
+        pthread_create(&readers[i], NULL, reader_thread, &rid[i]);
+
+    for (int i = 0; i < 3; i++)
+        pthread_join(writers[i], NULL);
+    for (int i = 0; i < 2; i++)
+        pthread_join(readers[i], NULL);
+
     
     return 0;
 }

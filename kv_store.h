@@ -14,6 +14,9 @@
 #define TABLE_SIZE 10
 #define KEY_SIZE   32
 #define VALUE_SIZE 64
+#define BUF_SIZE   128
+#define MAX_WRITER  3
+#define MAX_READER  2 
 
 typedef struct Node {
     char key[KEY_SIZE];
@@ -23,8 +26,14 @@ typedef struct Node {
 
 Node *hash_table[TABLE_SIZE];
 
+/* ---------- Initialising Locks ----------*/
+pthread_rwlock_t rw_lock = PTHREAD_RWLOCK_INITIALIZER;
+
 unsigned int hash(const char *key);
 void put(const char *key, const char *value);
 char *get(const char *key);
+void *writer_thread(void *arg);
+void *reader_thread(void *arg);
+void display_table();
 
 #endif 
