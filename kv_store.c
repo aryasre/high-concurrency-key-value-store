@@ -49,3 +49,30 @@ char *get(const char *key) {
     pthread_rwlock_unlock(&rw_lock);
     return NULL;
 }
+
+/* ---------- Display Hash table---------- */
+void display_table() {
+    printf("\n--- Hash Table ---\n");
+    printf("Index\tKey-Value\t\n");
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        Node *cur = hash_table[i];
+        if (cur) {
+            printf("[%d]: ", i);
+            while (cur) {
+                printf("(%s : %s) -> ", cur->key, cur->value);
+                cur = cur->next;
+            }
+            printf("NULL\n");
+        }
+    }
+}
+
+/*-------- Main --------*/
+int main() {
+
+    printf("----------Key-Value Store--------------------\n");
+   
+    display_table(); 
+    
+    return 0;
+}
