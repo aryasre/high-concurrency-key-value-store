@@ -4,13 +4,13 @@ This project implements an in-memory key-value store with WAL (Write-Ahead Loggi
 
 
 
-Overview
+# Overview
 
 This project implements a high-concurrency in-memory key-value store with durability guaranteed using Write-Ahead Logging (WAL) and Checkpointing. It is designed to simulate the internal mechanisms of modern databases like PostgreSQL.
 
 
 
-Features
+# Features
 
 -Multi-threaded Read/Write operations using POSIX threads  
 
@@ -26,9 +26,9 @@ Features
 
 
 
-Architecture
+# Architecture
 
-Components:
+# Components:
 
 1\. Writer Threads  
 
@@ -68,6 +68,7 @@ Components:
 <img width="1114" height="565" alt="strace 3" src="https://github.com/user-attachments/assets/b9c7d912-4f7b-4349-8712-ed7fe69ec30b" />
 <img width="1132" height="580" alt="strace 4" src="https://github.com/user-attachments/assets/464f92e1-3b8b-48b1-8cf7-e233d9a93bf7" />
 <img width="926" height="562" alt="profiling-perf" src="https://github.com/user-attachments/assets/0ce69afe-7291-4acf-ab70-bdc93fa4a469" />
+
 
 
 
