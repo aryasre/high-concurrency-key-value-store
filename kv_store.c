@@ -135,6 +135,53 @@ void *reader_thread(void *arg) {
     return NULL;
 }
 
+
+/*--------Checkpointer-----------*/
+void *checkpointer_thread(void *arg) {
+    (void)arg;
+    printf("[Checkpointer] Started...\n");
+
+    while(1)
+   {
+    sleep(10);
+    int db_fd = open(DB_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (db_fd < 0) {
+        perror("open DB failed");
+        return NULL;
+    }
+
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        Node *cur = hash_table[i];
+        while (cur) {
+            dprintf(db_fd, "%s %s\n", cur->key, cur->value);
+            cur = cur->next;
+        }
+    }
+     
+    fsync(db_fd);
+    close(db_fd);
+
+    int trunc_fd = open(WAL_FILE, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+    if (trunc_fd < 0) {
+        perror("truncate WAL");
+        break;
+       // return NULL;
+    }
+    close(trunc_fd);
+   char buffer[1024] = {0};
+    int wal_fd = open(WAL_FILE, O_RDONLY);
+    int n = read(wal_fd,buffer,sizeof(buffer)-1);
+    if(n == 0)
+    {
+        close(wal_fd);
+        break;
+    }
+     printf("[Checkpointer] \n");
+   }
+    printf("[Checkpointer] Wrote entries to DB and truncated WAL.\n");
+    return NULL;
+}
+
 /* ---------- Display Hash table---------- */
 void display_table() {
     printf("\n--- Hash Table ---\n");
