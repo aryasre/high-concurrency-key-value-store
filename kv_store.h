@@ -18,6 +18,7 @@
 #define MAX_WRITER  3
 #define MAX_READER  2 
 #define WAL_FILE   "wal.log"
+#define DB_FILE    "data.db"
 
 typedef struct Node {
     char key[KEY_SIZE];
@@ -40,6 +41,7 @@ void wal_append(const char *key, const char *value);
 void wal_replay();
 void *writer_thread(void *arg);
 void *reader_thread(void *arg);
+void *checkpointer_thread(void *arg);
 void display_table();
 
 #endif 

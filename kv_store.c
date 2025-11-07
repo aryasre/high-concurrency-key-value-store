@@ -170,6 +170,10 @@ int main() {
     for (int i = 0; i < 2; i++)
         pthread_join(readers[i], NULL);
 
+    pthread_t checkpointer; 
+    pthread_create(&checkpointer, NULL, checkpointer_thread, NULL);
+    pthread_join(checkpointer, NULL);
+
     display_table(); 
     printf("\nTotal successful writes: %d\n", atomic_load(&write_count));
     return 0;
