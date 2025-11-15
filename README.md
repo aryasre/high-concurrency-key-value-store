@@ -27,6 +27,50 @@ This project implements a high-concurrency in-memory key-value store with durabi
 
 
 # Architecture
+                ┌─────────────────────────────┐
+                │     Client Threads          │
+                │   (Readers / Writers)       │
+                └──────────────┬──────────────┘
+                               │
+                               ▼
+               ┌─────────────────────────────────┐
+               │   Concurrency Layer (Mutexes)   │
+               │  - WAL lock                     │
+               │  - Hashtable lock               │
+               └─────────────────┬───────────────┘
+                                 │
+                                 ▼
+       ┌────────────────────────────────────────────────────┐
+       │                 Write Path (PUT)                    │
+       │                                                    │
+       │  1. Serialize key/value                            │
+       │  2. Append to WAL file (wal.log)                   │
+       │  3. fdatasync() to ensure durability               │
+       │  4. Update in-memory hash table                    │
+       └────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+       ┌────────────────────────────────────────────────────┐
+       │                 Read Path (GET)                     │
+       │        Direct lookup in in-memory hash table       │
+       └────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+       ┌────────────────────────────────────────────────────┐
+       │             Checkpointer Thread                     │
+       │  - Periodically locks hash table                    │
+       │  - Dumps full hash table state to data.db           │
+       │  - Truncates/rotates WAL                            │
+       └────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+       ┌────────────────────────────────────────────────────┐
+       │                    Recovery                         │
+       │   1. Load last checkpoint (data.db)                │
+       │   2. Replay WAL records                            │
+       │   3. Rebuild in-memory hash table                  │
+       └────────────────────────────────────────────────────┘
+       
 
 # Components:
 
@@ -71,6 +115,7 @@ strace
 
 perf 
 <img width="926" height="562" alt="profiling-perf" src="https://github.com/user-attachments/assets/0ce69afe-7291-4acf-ab70-bdc93fa4a469" />
+
 
 
 
